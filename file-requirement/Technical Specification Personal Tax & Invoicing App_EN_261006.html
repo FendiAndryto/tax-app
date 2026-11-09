@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technical Specification - Personal Tax & Invoicing App (MVP)</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background: #f1f5f9; padding: 24px; margin: 0; }
+    .container { max-width: 1000px; margin: 0 auto; background: #ffffff; padding: 48px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    h1 { color: #0f172a; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-top: 0; }
+    h2 { color: #1d4ed8; margin-top: 36px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
+    h3 { color: #334155; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; }
+    th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, Menlo, Monaco, monospace; color: #b45309; font-size: 13px; }
+    pre { background: #0f172a; color: #f8fafc; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: ui-monospace, Menlo, Monaco, monospace; font-size: 13px; }
+    .callout { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+    .endpoint { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; margin-right: 8px; }
+    .post { background: #dcfce7; color: #15803d; }
+    .get { background: #e0f2fe; color: #0369a1; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Technical Specification: Personal Tax & Invoicing App (MVP)</h1>
+  <p><strong>Stack:</strong> React Native (Expo & Expo Web) + PHP (Laravel REST API) + MySQL</p>
+
+  <div class="callout">
+    <strong>Objective for Indonesian Development Team:</strong><br>
+    Build a mobile-first app for Japanese freelancers, independent contractors, and partner agency/hospitality staff. The UI must look like an effortless, single-entry expense tracker (similar to <em>QuickBooks Solopreneur</em> and <em>Taxnap</em>), while the backend handles automated double-entry bookkeeping (複式簿記) required by Japanese tax authorities.
+  </div>
+
+  <h2>1. Subscription Plans & Access Limits</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Standard Plan (¥1,100 / month)</th>
+        <th>Premium Plan (¥3,300 / month)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Target Audience</strong></td>
+        <td>General Freelancers, Solo Designers, Writers</td>
+        <td>Partner Agency/Hospitality Staff, High-Volume Earners</td>
+      </tr>
+      <tr>
+        <td><strong>Receipt AI-OCR</strong></td>
+        <td>Free up to 30 receipts/mo (Extra via top-up tickets)</td>
+        <td><strong>Unlimited</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Partner POS Webhook Sync</strong></td>
+        <td>Disabled</td>
+        <td><strong>Enabled (1-Tap Direct Webhook Sync)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Per-Day Tax Formula</strong></td>
+        <td>Standard flat 10.21% only</td>
+        <td><strong>Enabled (¥5,000/day deduction rule)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Invoice Generation</strong></td>
+        <td>Manual entry & PDF download</td>
+        <td><strong>Auto-generated from POS payout data</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Official Tax Return PDF</strong></td>
+        <td>Enabled (Form B & Blue Return Statement)</td>
+        <td>Enabled (Form B & Blue Return Statement)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Core Calculations & Business Logic</h2>
+
+  <h3>A. Special Per-Day Withholding Tax Formula (Agency / Hospitality Staff)</h3>
+  <p>Under Japanese Tax Law (Article 204), talent/performer earnings are calculated as follows:</p>
+  <pre><code>deductible_base = 5000 * attendance_days;
+if (gross_revenue > deductible_base) {
+    withholding_tax = Math.floor((gross_revenue - deductible_base) * 0.1021);
+} else {
+    withholding_tax = 0;
+}</code></pre>
+
+  <h3>B. Mixed Expense Splitting (Business Ratio / 家事按分)</h3>
+  <p>When an expense is shared between business and personal life (e.g. Rent: ¥100,000 with 40% business ratio):</p>
+  <ul>
+    <li><strong>Business Expense (Rent)</strong> = <code>¥100,000 * 40% = ¥40,000</code> &rarr; Profit & Loss (P/L)</li>
+    <li><strong>Personal Living Cost (Owner's Draw)</strong> = <code>¥100,000 * 60% = ¥60,000</code> &rarr; Balance Sheet (B/S)</li>
+  </ul>
+
+  <h3>C. Estimated Tax Liability Calculation (Home Dashboard)</h3>
+  <pre><code>net_profit = total_sales - total_business_expenses;
+blue_declaration_deduction = 650000; // Special Blue Return Deduction
+basic_deduction = 480000;            // Basic Personal Deduction
+taxable_income = Math.max(0, net_profit - blue_declaration_deduction - basic_deduction);
+
+// Simplified Tax Estimates for User Display:
+estimated_income_tax = Math.floor(taxable_income * 0.05);   // Progressive minimum bracket (5%)
+estimated_resident_tax = Math.floor(taxable_income * 0.10); // Standard flat 10%
+total_estimated_tax = estimated_income_tax + estimated_resident_tax;</code></pre>
+
+  <h2>3. Double-Entry Rule Engine (Mapping Table)</h2>
+  <p>Every time a transaction is saved, backend PHP creates balanced <code>journal_entries</code>:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Transaction Source</th>
+        <th>Debit Account (借方)</th>
+        <th>Credit Account (貸方)</th>
+        <th>Tax Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Direct Expense (Costume ¥30,000 Cash)</strong></td>
+        <td><code>Supplies</code> (消耗品費): ¥30,000</td>
+        <td><code>Cash</code> (現金): ¥30,000</td>
+        <td>10% Taxable Purchase</td>
+      </tr>
+      <tr>
+        <td><strong>Split Expense (Rent ¥100,000, Ratio 40%)</strong></td>
+        <td><code>Rent</code> (地代家賃): ¥40,000<br><code>Owner Draw</code> (事業主貸): ¥60,000</td>
+        <td><code>Bank Deposit</code> (普通預金): ¥100,000</td>
+        <td>Non-Taxable (Housing)</td>
+      </tr>
+      <tr>
+        <td><strong>POS Sync Income (Gross ¥500k, Deductions ¥50k, Tax ¥45k, Net ¥405k)</strong></td>
+        <td><code>Accounts Receivable</code> (売掛金): ¥405,000<br><code>Agency Misc Fee</code> (雑費): ¥50,000<br><code>Prepaid Income Tax</code> (事業主貸): ¥45,000</td>
+        <td><code>Sales Revenue</code> (売上高): ¥500,000</td>
+        <td>10% Taxable Sales</td>
+      </tr>
+      <tr>
+        <td><strong>Freelancer Manual Sales (Invoice ¥110,000, 10.21% Tax)</strong></td>
+        <td><code>Accounts Receivable</code> (売掛金): ¥99,769<br><code>Prepaid Income Tax</code> (事業主貸): ¥10,231</td>
+        <td><code>Sales Revenue</code> (売上高): ¥110,000</td>
+        <td>10% Taxable Sales</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. REST API Endpoint Specifications</h2>
+
+  <h3>1. POS Payout Receiver</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/pos/sync</code> (Called by Partner POS Webhook)</p>
+  <pre><code>// Request Body
+{
+  "pos_transaction_id": "POS-202610-8812",
+  "user_id": 1042,
+  "pay_period": "2026-09",
+  "attendance_days": 20,
+  "gross_revenue": 650000,
+  "withholding_tax": 56155,
+  "net_payment": 543845,
+  "deductions": [
+    { "name": "Styling & Hair-make", "amount": 30000, "tax_rate": 0.10 },
+    { "name": "Locker Fee", "amount": 10000, "tax_rate": 0.10 },
+    { "name": "Late Penalty", "amount": 10000, "tax_rate": 0.00 }
+  ]
+}
+
+// Response (200 OK)
+{
+  "status": "success",
+  "transaction_id": 9012,
+  "message": "POS payout recorded and journal entries balanced."
+}</code></pre>
+
+  <h3>2. Receipt & Payslip AI-OCR</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/ocr/parse</code> (Processed by local Vision model on Mac mini)</p>
+  <pre><code>// Request: Multipart Form Data with image file (image: File)
+
+// Response (200 OK)
+{
+  "status": "success",
+  "detected_type": "receipt", // 'receipt' or 'payslip'
+  "parsed_data": {
+    "date": "2026-10-05",
+    "total_amount": 14200,
+    "tax_amount": 1290,
+    "suggested_category": "travel",
+    "vendor_name": "Tokyo Taxi Co.",
+    "invoice_number": "T1234567890123"
+  }
+}</code></pre>
+
+  <h3>3. Transaction Storage</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/transactions</code></p>
+  <pre><code>// Request Body
+{
+  "type": "expense", // 'income' or 'expense'
+  "transaction_date": "2026-10-06",
+  "category_id": "costume",
+  "total_amount": 25000,
+  "tax_rate": 0.10,
+  "business_ratio": 100,
+  "payment_method": "cash",
+  "description": "Stage shoes",
+  "receipt_url": "https://s3.../receipt.jpg"
+}</code></pre>
+
+  <h2>5. Screen Specifications (React Native)</h2>
+  <ol>
+    <li><strong>Screen 1: Home Dashboard</strong>
+      <ul>
+        <li>Monthly Summary Cards: Total Sales, Total Expenses, Net Margin.</li>
+        <li>Estimated Tax Widget: "Estimated Tax Due: ¥XX,XXX".</li>
+        <li>Quick Action Buttons: "+ Add Income", "- Add Expense", "Camera Scan".</li>
+      </ul>
+    </li>
+    <li><strong>Screen 2: Income Registration (3 Segmented Tabs)</strong>
+      <ul>
+        <li>Tab A (POS Sync): Shows list of monthly store payouts with a "Confirm & Sync" button.</li>
+        <li>Tab B (Camera OCR): Live camera capture for physical pay slips with preview parser.</li>
+        <li>Tab C (Manual Entry): Form for general freelancers (Client name, Gross amount, Tax toggle).</li>
+      </ul>
+    </li>
+    <li><strong>Screen 3: Expense Input (Taxnap Style)</strong>
+      <ul>
+        <li>Large numerical keypad on screen.</li>
+        <li>Category chip selector (Costume, Styling, Transport, Beauty, Rent, Supplies).</li>
+        <li>Slider component for Mixed Expenses (0% to 100%).</li>
+      </ul>
+    </li>
+    <li><strong>Screen 4: History & Qualified Invoice Generator</strong>
+      <ul>
+        <li>Timeline of all entries with delete/edit modals.</li>
+        <li>Button: "Generate Qualified Invoice PDF" for venue payouts.</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+</body>
+</html>

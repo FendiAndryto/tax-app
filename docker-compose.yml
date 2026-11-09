@@ -1,0 +1,71 @@
+name: tax-app
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: tax_app_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-tax_app_db}
+      MYSQL_USER: ${DB_USERNAME:-tax_app_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-tax_app_password}
+    ports:
+      - "${DB_EXTERNAL_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - tax_app_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tax_app_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-tax_app_db}
+      DB_USERNAME: ${DB_USERNAME:-tax_app_user}
+      DB_PASSWORD: ${DB_PASSWORD:-tax_app_password}
+    ports:
+      - "${BACKEND_PORT:-8001}:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tax_app_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: tax_app_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: ${DB_USERNAME:-tax_app_user}
+      PMA_PASSWORD: ${DB_PASSWORD:-tax_app_password}
+    ports:
+      - "${PMA_PORT:-8082}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tax_app_net
+
+networks:
+  tax_app_net:
+    name: tax_app_net
+
+volumes:
+  mysql_data:
+    name: tax_app_mysql_data

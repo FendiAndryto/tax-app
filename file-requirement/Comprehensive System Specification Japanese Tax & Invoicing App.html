@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive System & Technical Specification - Personal Tax & Invoicing App</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      background-color: #f8fafc;
+      padding: 30px 15px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 48px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    }
+    h1 {
+      color: #0f172a;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 14px;
+      margin-top: 0;
+      font-size: 26px;
+    }
+    h2 {
+      color: #1d4ed8;
+      margin-top: 40px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      font-size: 20px;
+    }
+    h3 {
+      color: #334155;
+      margin-top: 24px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13.5px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    code {
+      background-color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #b45309;
+      font-size: 13px;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .badge-p0 { background-color: #fee2e2; color: #b91c1c; }
+    .badge-p1 { background-color: #fef3c7; color: #b45309; }
+    .badge-p2 { background-color: #e0f2fe; color: #0369a1; }
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 18px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 14.5px;
+    }
+    .endpoint {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    .post { background: #dcfce7; color: #15803d; }
+    .get { background: #e0f2fe; color: #0369a1; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Comprehensive System Specification: Japanese Tax & Invoicing App (MVP)</h1>
+  <p><strong>Architecture Stack:</strong> React Native (Expo & Expo Web) + PHP (Laravel REST API) + MySQL</p>
+
+  <div class="callout">
+    <strong>Core Architectural Directive:</strong><br>
+    The application provides a simplified single-entry frontend designed for Japanese freelancers, independent contractors, and partner agency/hospitality staff. In the background, the engine automates full double-entry bookkeeping (複式簿記) complying with Japanese National Tax Agency standards (Blue Return 650,000 JPY deduction, Qualified Invoice System, and Article 204 withholding rules).
+  </div>
+
+  <h2>1. Complete App Navigation (5 Bottom Tabs)</h2>
+  <ul>
+    <li><strong>Tab 1: Dashboard (Home)</strong>:
+      <ul>
+        <li>Onboarding Checklist: 4-step progress tracker.</li>
+        <li>Financial Snapshot: Monthly Net Profit, Revenue, and Expense progress bars.</li>
+        <li>Tax Audit Risk Monitor: Scoring card ("Low", "Medium", "High") gating detailed feedback behind Premium.</li>
+      </ul>
+    </li>
+    <li><strong>Tab 2: Bookkeeping Hub (仕分け)</strong>:
+      <ul>
+        <li>Direct Action Launchers: "Capture Receipts (OCR)", "Sync POS / External Records", "Manual Numpad Entry".</li>
+      </ul>
+    </li>
+    <li><strong>Tab 3: Transaction History (取引一覧)</strong>:
+      <ul>
+        <li>Chronological timeline ledger with keyword search, filter chips, batch editing, and export shortcuts.</li>
+      </ul>
+    </li>
+    <li><strong>Tab 4: Tax Return Wizard (確定申告)</strong>:
+      <ul>
+        <li>Interactive questionnaire guiding users through filing choices.</li>
+        <li>Live preview and generation of official Final Tax Return Form B (第一表・第二表) and Blue Return Statements.</li>
+      </ul>
+    </li>
+    <li><strong>Tab 5: Analytics & Drawer Settings (お金 / Menu)</strong>:
+      <ul>
+        <li>Fixed Asset Ledger, Auto-categorization Rules, Invoicing, Data Import/Export, and Account Profile.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. Transaction Entry & Double-Entry Real-Time Preview</h2>
+  <p>The core input flow allows instant manual entries while showing balanced accounting debits and credits in real time.</p>
+
+  <h3>A. Form Controls</h3>
+  <ul>
+    <li><strong>Type Toggle</strong>: Switch between <code>Expense (支出)</code> and <code>Income (収入)</code>.</li>
+    <li><strong>Virtual Numpad</strong>: Integrated numeric keypad for one-handed monetary input.</li>
+    <li><strong>Category Selector</strong>: Dynamic list populated based on user profession (e.g., Supplies, Travel, Rent, Styling, Dining).</li>
+    <li><strong>Expandable Drawer (任意の詳細設定)</strong>:
+      <ul>
+        <li><strong>Business Ratio Slider (家事按分)</strong>: 0% to 100% split. Calculates business deductible vs owner's personal draw.</li>
+        <li><strong>Settlement Method</strong>: Cash, Bank Account, Accounts Receivable/Payable.</li>
+        <li><strong>Vendor/Client Binding</strong>: Associates transaction with a registered counterparty.</li>
+        <li><strong>Receipt Attachment</strong>: Image upload link.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>B. Real-Time Journal Preview Box</h3>
+  <pre><code>// Example: Communication expense ¥10,000 at 50% business ratio paid via Cash
+[Debit (借方)]                       [Credit (貸方)]
+Communication Fee: ¥5,000           Cash: ¥10,000
+Owner's Draw:      ¥5,000</code></pre>
+
+  <h3>C. Duplicate Entry Safeguard</h3>
+  <p>Trigger a modal warning whenever a record is created matching the exact same Date, Amount, and Category:</p>
+  <pre><code>"A duplicate entry may exist (Date: YYYY-MM-DD, Amount: ¥XX,XXX). Proceed anyway?"</code></pre>
+
+  <h2>3. Specialized Japanese Tax Engine Logic</h2>
+
+  <h3>A. Partner Agency / Hospitality Per-Day Withholding Tax (Article 204)</h3>
+  <p>For registered performers and hospitality staff, withholding tax applies an allowance of 5,000 JPY per day worked:</p>
+  <pre><code>$deductible_base = 5000 * $attendance_days;
+if ($gross_revenue > $deductible_base) {
+    $withholding_tax = floor(($gross_revenue - $deductible_base) * 0.1021);
+} else {
+    $withholding_tax = 0;
+}</code></pre>
+
+  <h3>B. Qualified Invoice Tax & Rounding Rules</h3>
+  <p>Under Japanese Invoice regulations, tax <strong>MUST NOT</strong> be calculated and rounded per item line. Pre-tax amounts are grouped by tax rate (10% and 8%), and rounding occurs exactly once per tax bracket.</p>
+  <ul>
+    <li>Configurable rounding methods: <code>Floor (切り捨て)</code>, <code>Ceil (切り上げ)</code>, or <code>Round (四捨五入)</code>.</li>
+    <li>Reverse Calculation Mode: For total-inclusive payments (e.g., ¥39,000 rounded payout), back-calculate:
+      <pre><code>$pre_tax_total = floor($inclusive_grand_total / 1.1);
+$consumption_tax = $inclusive_grand_total - $pre_tax_total;</code></pre>
+    </li>
+  </ul>
+
+  <h2>4. Sub-Systems & Advanced Modules</h2>
+
+  <h3>A. Rule-Based Auto-Categorization Engine</h3>
+  <p>Enables automatic classification of imported or synchronized records:</p>
+  <ul>
+    <li><strong>Matching Conditions</strong>: Transaction description substring (e.g., contains "Seven-Eleven") OR specific institution ID.</li>
+    <li><strong>Triggered Actions</strong>: Set Status (Business / Private), Assign Category ID, Apply default Business Split Ratio (0-100%), and execute by Priority order.</li>
+  </ul>
+
+  <h3>B. Fixed Asset Ledger & Depreciation Engine (固定資産台帳)</h3>
+  <p>Manages capital purchases exceeding 100,000 JPY:</p>
+  <ul>
+    <li><strong>Properties</strong>: Asset Name, Purchase Date, In-service Date, Acquisition Cost, Quantity, Useful Life (Statutory Years), Business Usage Ratio.</li>
+    <li><strong>Depreciation Methods</strong>:
+      <ul>
+        <li><code>Straight-Line (定額法)</code>: Standard equal annual depreciation.</li>
+        <li><code>Declining-Balance (定率法)</code>: Accelerated depreciation.</li>
+        <li><code>Small-Sum Immediate (少額減価償却資産特例)</code>: Under 300,000 JPY fully expensed in the current year.</li>
+        <li><code>Lump-Sum (一括償却)</code>: Equal split over 3 consecutive years.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>C. Qualified Invoice & Quotation Generator</h3>
+  <ul>
+    <li>Captures: Qualified Issuer Number (<code>T + 13 digits</code>), Client Name, Invoice Date, Due Date, Itemized Lines, Bank Settlement Details.</li>
+    <li>Generates official PDF complying with National Tax Agency Qualified Invoice formatting.</li>
+  </ul>
+
+  <h3>D. Data Import & Export Modules</h3>
+  <ul>
+    <li><strong>Import</strong>: Accepts CSV files exported from major Japanese tax software (<code>freee</code>, <code>MoneyForward</code>, <code>Yayoi</code>, and <code>PayPay</code>).</li>
+    <li><strong>Export</strong>: Generates Journal Ledger (仕訳帳) and General Ledger (総勘定元帳) in CSV formats (supporting both <code>UTF-8</code> and <code>Shift_JIS</code>).</li>
+  </ul>
+
+  <h3>E. AI Consultation Assistant (スナッピー)</h3>
+  <ul>
+    <li>In-app floating AI chatbot.</li>
+    <li>Provides real-time answers regarding deductible criteria, tax filing deadlines, and categorization recommendations.</li>
+  </ul>
+
+  <h2>5. REST API Specifications</h2>
+
+  <h3>1. POS Payout Receiver</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/pos/sync</code></p>
+  <pre><code>// Request Payload
+{
+  "pos_transaction_id": "POS-202610-9941",
+  "user_id": 1042,
+  "pay_period": "2026-09",
+  "attendance_days": 22,
+  "gross_revenue": 720000,
+  "withholding_tax": 62281,
+  "net_payment": 607719,
+  "deductions": [
+    { "name": "Costume & Styling", "amount": 35000, "tax_rate": 0.10 },
+    { "name": "Locker Rental", "amount": 15000, "tax_rate": 0.10 }
+  ]
+}</code></pre>
+
+  <h3>2. Rule-Based Automation Endpoint</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/auto-rules</code></p>
+  <pre><code>// Request Payload
+{
+  "user_id": 1042,
+  "keyword": "Adobe",
+  "match_type": "contains",
+  "action_status": "business",
+  "category_id": "communication",
+  "business_ratio": 100,
+  "priority": 1
+}</code></pre>
+
+  <h3>3. Fixed Asset Registration</h3>
+  <p><span class="endpoint post">POST</span><code>/api/v1/assets</code></p>
+  <pre><code>// Request Payload
+{
+  "user_id": 1042,
+  "asset_name": "MacBook Pro 16",
+  "purchase_date": "2026-04-10",
+  "in_service_date": "2026-04-10",
+  "acquisition_cost": 380000,
+  "depreciation_method": "small_sum", // 'straight_line', 'declining_balance', 'small_sum', 'lump_sum'
+  "useful_life_years": 4,
+  "business_ratio": 90
+}</code></pre>
+
+  <h2>6. Implementation Priority Matrix</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Priority</th>
+        <th>Subsystem / Feature</th>
+        <th>Deliverable Scope</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td><strong>Transaction Entry UI & Journal Engine</strong></td>
+        <td>Single-entry form with numpad, category chips, ratio slider, duplicate alert, and balanced backend journal entries generator.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td><strong>POS Sync Webhook Receiver</strong></td>
+        <td><code>POST /api/v1/pos/sync</code> endpoint with Article 204 daily withholding calculation.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td><strong>P/L Chart & Dashboard Analytics</strong></td>
+        <td>Visual monthly income vs expense stacked bar charts and net income calculation.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td><strong>Qualified Invoice PDF Module</strong></td>
+        <td>Form builder with issuer registration number (T+13) and single-pass tax rounding.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td><strong>Auto-Categorization Rules Engine</strong></td>
+        <td>CRUD and automated parser for matching incoming records against custom keywords.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td><strong>Fixed Asset & Depreciation</strong></td>
+        <td>Depreciation schedule table calculating statutory annual expense write-offs.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td><strong>External CSV Data Import/Export</strong></td>
+        <td>Parsers for Yayoi/freee/MoneyForward/PayPay formats and Shift_JIS/UTF-8 export.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td><strong>Final Tax Return PDF Output</strong></td>
+        <td>Plotting aggregated journal totals onto official Japanese National Tax Agency forms.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Side Drawer (Hamburger Menu) Specification - Role-Aware Dynamic UI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      background-color: #f8fafc;
+      padding: 30px 15px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      color: #0f172a;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 12px;
+      font-size: 24px;
+      margin-top: 0;
+    }
+    h2 {
+      color: #1d4ed8;
+      margin-top: 32px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 28px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    code {
+      background-color: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      color: #b45309;
+      font-size: 12px;
+    }
+    .badge-p0 {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .badge-p1 {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    .badge-p2 {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+    .badge-night-only {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background-color: #fae8ff;
+      color: #86198f;
+    }
+    .badge-all {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background-color: #ecfdf5;
+      color: #065f46;
+    }
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 14px 18px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+    }
+    .mode-order {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Side Drawer (Hamburger Menu) Specification & Dynamic UI Architecture</h1>
+  <p><strong>Target Architecture:</strong> React Native (Expo) Modal Drawer + Laravel API Backend</p>
+
+  <div class="callout">
+    <strong>Public Business Mode Order & Strict Dynamic Visibility:</strong>
+    <div class="mode-order">
+      <strong>1. General Freelancer & Sole Proprietor Mode (MODE_FREELANCE) [DEFAULT / PRIMARY]</strong><br>
+      Creators, IT engineers, designers, consultants, small business owners.<br>
+      <em>&rarr; Fully standard accounting view. "POS Sync" is completely HIDDEN to avoid confusion.</em><br><br>
+      <strong>2. Hospitality & Partner Nightwork Mode (MODE_NIGHTWORK) [SPECIALIZED TRACK]</strong><br>
+      Venue staff, cast, hospitality performers with partner club/store integrations.<br>
+      <em>&rarr; Displays "Partner POS Connection", Article 204 withholding tax, and dedicated expense presets.</em>
+    </div>
+  </div>
+
+  <!-- SECTION A: DAILY AUTOMATION & CORE SETTINGS -->
+  <h2>Category A: Daily Bookkeeping & Automation Rules (仕分け・自動化設定) <span class="badge-p0">Phase 1 (P0 Priority)</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%;">Item Name</th>
+        <th style="width: 20%;">Mode Visibility</th>
+        <th style="width: 32%;">Functional Scope & Logic</th>
+        <th style="width: 22%;">User Inputs & Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Partner POS Connection<br><code>提携店舗POS連携設定</code></strong></td>
+        <td><span class="badge-night-only">Nightwork Mode ONLY</span><br><small style="color: #64748b;">(Hidden in Freelance Mode)</small></td>
+        <td>Pairs staff profile with venue/agency POS. Fetches automated daily/monthly attendance payout webhooks via <code>POST /api/v1/pos/sync</code>.</td>
+        <td>Store ID, Cast Code, and 1-time Pairing Token. Shows real-time sync status.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Business Ratio Defaults<br><code>家事按分初期設定</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Stores default deductible percentage split for mixed personal/business expenses (Rent, Internet/Phone, Utilities, Vehicle). Auto-sets the split slider on entry.</td>
+        <td>Sliders (0% - 100%) for recurring categories. Saves to <code>user_business_ratios</code> table.</td>
+      </tr>
+      <tr>
+        <td><strong>3. Auto-Categorization Rules<br><code>自動仕分けルール設定</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Rule matching engine. Incoming OCR receipts matching specific keywords are automatically categorized and assigned split % without manual swiping.</td>
+        <td>Keyword (e.g., "Adobe", "Seven-Eleven"), Target Category, Split %, Priority order.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Notification Reminders<br><code>リマインド通知設定</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Configures recurring local push notifications reminding users to capture backlog receipts and complete transaction swiping.</td>
+        <td>Toggle ON/OFF, day-of-week selectors (Mon-Sun), and time picker (e.g., 20:00).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION B: MASTERS & ASSETS -->
+  <h2>Category B: Master Catalogs & Assets (マスタ管理・固定資産) <span class="badge-p1">Phase 2 (P1 Priority)</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%;">Item Name</th>
+        <th style="width: 20%;">Mode Visibility</th>
+        <th style="width: 32%;">Functional Scope & Logic</th>
+        <th style="width: 22%;">User Inputs & Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>5. Client Directory<br><code>取引先マスタ管理</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Directory of recurring agencies, clients, or billing entities. Auto-populates recipient details when issuing invoices.</td>
+        <td>Client Name, Address, Contact, Qualified Invoice Registration Number (T-number).</td>
+      </tr>
+      <tr>
+        <td><strong>6. Invoice Issuer Profile<br><code>インボイス発行設定</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Configures user's Qualified Invoice Issuer ID (<code>T + 13 digits</code>) and statutory rounding settings (Single-pass floor/ceil/round).</td>
+        <td>T-Number input with format validation, default payment bank account, rounding method selector.</td>
+      </tr>
+      <tr>
+        <td><strong>7. Fixed Asset Ledger<br><code>固定資産台帳 (減価償却)</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Manages capital equipment exceeding ¥100,000 (e.g., laptops, smartphones, vehicles). Calculates annual depreciation schedules (Straight-Line or Small-Sum &lt;¥300,000).</td>
+        <td>Asset name, Purchase date, Cost, Useful life years, Depreciation method.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION C: ANNUAL TAX FILINGS -->
+  <h2>Category C: Annual Tax Return & Fiscal Forms (確定申告・税務書類) <span class="badge-p2">Phase 3 (P2 Priority)</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%;">Item Name</th>
+        <th style="width: 20%;">Mode Visibility</th>
+        <th style="width: 32%;">Functional Scope & Logic</th>
+        <th style="width: 22%;">User Inputs & Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>8. Tax Return Wizard<br><code>確定申告書作成</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Annual interactive questionnaire evaluating tax deduction eligibility (Basic Deduction ¥480,000, Spouse, Dependents, Social Insurance, Medical).</td>
+        <td>Yes / No / Unsure cards. Saves answers into <code>user_tax_profiles</code> table.</td>
+      </tr>
+      <tr>
+        <td><strong>9. Generate Official PDF<br><code>申告書類プレビュー</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Aggregates annual transaction data and wizard answers. Maps values directly onto official Japanese National Tax Agency forms: <strong>Form B (第一表・第二表)</strong> and <strong>Blue Return Statement (青色申告決算書)</strong>.</td>
+        <td>PDF viewer modal with "Download PDF" and "Share" actions.</td>
+      </tr>
+      <tr>
+        <td><strong>10. Fiscal Year Switcher<br><code>会計年度の切り替え</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Switches active accounting period (e.g., 2026 / 2025). Re-fetches transactions and reports corresponding to the selected fiscal year.</td>
+        <td>Wheel picker modal with active year badge.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION D: DATA MIGRATION & BACKUP -->
+  <h2>Category D: Data Migration & Backup (データ連携・入出力) <span class="badge-p2">Phase 4</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%;">Item Name</th>
+        <th style="width: 20%;">Mode Visibility</th>
+        <th style="width: 32%;">Functional Scope & Logic</th>
+        <th style="width: 22%;">User Inputs & Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>11. CSV Data Import<br><code>他社データ取り込み</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Migrates accounting data from other software (freee, MoneyForward, Yayoi, PayPay CSV). Parses standard formats and inserts into <code>transactions</code> table.</td>
+        <td>File picker (CSV upload), Source software dropdown, Mapping preview button.</td>
+      </tr>
+      <tr>
+        <td><strong>12. CSV Data Export<br><code>取引データエクスポート</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Exports transaction records for tax accountants or backup purposes. Generates Journal Ledger (仕訳帳) and General Ledger (総勘定元帳).</td>
+        <td>Fiscal year selector, Encoding picker (<code>UTF-8</code> or <code>Shift_JIS</code> for Excel), Export button.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION E: ACCOUNT & SETTINGS -->
+  <h2>Category E: Account & Settings (アカウント・設定) <span class="badge-p2">Phase 5</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%;">Item Name</th>
+        <th style="width: 20%;">Mode Visibility</th>
+        <th style="width: 32%;">Functional Scope & Logic</th>
+        <th style="width: 22%;">User Inputs & Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>13. Business Mode & Profile<br><code>業種・働き方設定 & プラン</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Switches active business mode: <strong>1. General Freelancer</strong> vs <strong>2. Nightwork & Hospitality</strong>. Updates personal info and manages subscription.</td>
+        <td>Mode selector radio toggle, Email update, subscription management.</td>
+      </tr>
+      <tr>
+        <td><strong>14. Support & Terms<br><code>利用規約・ログアウト</code></strong></td>
+        <td><span class="badge-all">All Modes</span></td>
+        <td>Legal terms of service, privacy policy, app version information, and secure logout action.</td>
+        <td>Links to terms webview, logout trigger button.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

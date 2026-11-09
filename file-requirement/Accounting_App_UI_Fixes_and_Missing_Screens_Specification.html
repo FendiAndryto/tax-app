@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounting App: UI/UX Fixes & Missing Screens Specification</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      background-color: #f8fafc;
+      padding: 30px 15px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      color: #0f172a;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 12px;
+      font-size: 24px;
+      margin-top: 0;
+    }
+    h2 {
+      color: #1d4ed8;
+      margin-top: 32px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 28px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    code {
+      background-color: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      color: #b45309;
+      font-size: 12px;
+    }
+    .badge-p0 {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .badge-p1 {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    .badge-fix {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 14px 18px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Accounting App UI/UX Fixes & Missing Screens Specification</h1>
+  <p><strong>Target Stack:</strong> React Native (Expo) / Laravel 11 API / Figma App Shell</p>
+
+  <div class="callout">
+    <strong>Task Objective for Development Team:</strong><br>
+    This document outlines the required UI adjustments on existing Tab screens and provides full specifications for the unbuilt screens (P0 / P1) required for commercial production release.
+  </div>
+
+  <h2>1. UI & Interaction Fixes for Existing Screens (3 Core Fixes)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 22%;">Target Component</th>
+        <th style="width: 15%;">Category</th>
+        <th style="width: 30%;">Current Issue</th>
+        <th style="width: 33%;">Actionable Fix Instructions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Bottom Navigation Bar<br>(5-Tab Bar)</strong></td>
+        <td><span class="badge-fix">UI Text Polish</span></td>
+        <td>Labels such as "レシート撮影" and "事業レポート" have excessive character length, risking overflow on compact screens.</td>
+        <td>Standardize all tab labels to concise 2–4 Japanese characters:<br>
+        <code>ホーム</code> | <code>仕分け</code> | <code>撮影</code> (Center 56px action) | <code>取引・請求</code> | <code>レポート</code></td>
+      </tr>
+      <tr>
+        <td><strong>Tab 2: Journaling Screen<br>(Swipe Bookkeeping)</strong></td>
+        <td><span class="badge-fix">Batch UX & Undo</span></td>
+        <td>Only allows sequential 1-by-1 card swipe. Lacks batch confirmation for accumulated backlogs and quick recovery.</td>
+        <td>
+          1. <strong>Batch Confirm Button:</strong> Add <code>⚡ AI判定を信じて全◯◯件を一括確定 (Confirm All Remaining via AI)</code> beneath the card stack.<br>
+          2. <strong>Immediate Undo Toast:</strong> Display a floating snackbar <code>↩ 1件元に戻す (Undo)</code> for 4 seconds after each swipe.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Tab 4: Transactions Screen<br>(Timeline List)</strong></td>
+        <td><span class="badge-fix">Inline Edit & ERPA</span></td>
+        <td>Modifying an account category requires pushing a detail screen. Document storage status is not visible at a glance.</td>
+        <td>
+          1. <strong>Inline Category Switch:</strong> Tapping the category badge (e.g., <code>[ 消耗品費 ▾ ]</code>) opens a BottomSheet to reassign and save in 1 tap without page transition.<br>
+          2. <strong>ERPA Compliance Badge:</strong> Display a small <code>📎</code> or <code>📄</code> icon on rows with verified cloud receipts/invoices.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Missing Screens Required for Commercial Launch (8 Screens)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 7%;">Priority</th>
+        <th style="width: 25%;">Screen ID & Name</th>
+        <th style="width: 15%;">Screen Type</th>
+        <th style="width: 15%;">Visibility Mode</th>
+        <th style="width: 38%;">Key Components & Functional Logic</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge-p0">P0</span></td>
+        <td><strong>Screen O-1: Onboarding<br>(Role Selection)</strong></td>
+        <td>Full Screen</td>
+        <td>First Launch (All)</td>
+        <td>Card selector: <code>1. General Freelancer</code> vs. <code>2. Nightwork / Partner Store</code>. Controls Item D-06 visibility and default category sets.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p0">P0</span></td>
+        <td><strong>Screen D-01: Business Ratio<br>(家事按分初期設定)</strong></td>
+        <td>Stack Screen</td>
+        <td>All Users</td>
+        <td>4 intuitive slider bars (Rent, Electricity, Internet, Vehicle) with monthly base cost inputs and real-time visual ratio charts.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p0">P0</span></td>
+        <td><strong>Screen D-06: POS & Auto-Invoice<br>(提携店舗POS連携 & 自動請求書)</strong></td>
+        <td>Stack Screen</td>
+        <td>Nightwork Only<br><small>(Hidden in Freelance)</small></td>
+        <td>Store ID, Staff Code, and 1-time Pairing Token inputs. Toggle: <code>[ON/OFF] Automatically deliver Qualified Invoice to Store Console on closing</code> + PDF delivery history.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p0">P0</span></td>
+        <td><strong>Screen D-05: Invoice Profile<br>(インボイス発行設定)</strong></td>
+        <td>Stack Screen</td>
+        <td>All Users</td>
+        <td>13-digit National Tax Agency T-Number validation (<code>T + 13 digits</code>), tax rounding radio (Floor/Ceil/Round), and remittance bank account details.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p0">P0</span></td>
+        <td><strong>Screen D-10: ERPA Storage Box<br>(電子帳簿保存キャビネット)</strong></td>
+        <td>Stack Screen</td>
+        <td>All Users</td>
+        <td>ERPA statutory search bar (Date Range, Amount Range, Partner Name). Cloud receipt/invoice PDF viewer and batch ZIP archive export.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p1">P1</span></td>
+        <td><strong>Screen D-07: Tax Return Wizard<br>(確定申告作成ウィザード)</strong></td>
+        <td>Full Modal</td>
+        <td>All Users</td>
+        <td>Immersive wizard hiding bottom tabs. Interactive Yes/No question cards for tax deductions (MyNumber, spouse, medical expenses, donations).</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p1">P1</span></td>
+        <td><strong>Screen D-08: Tax PDF Preview<br>(申告書類プレビュー)</strong></td>
+        <td>Full Modal</td>
+        <td>All Users</td>
+        <td>Full-screen A4 PDF viewer for official Form B & Blue Return balance sheets with pinch-to-zoom and official export actions.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-p1">P1</span></td>
+        <td><strong>Screen D-11: CSV Data Export<br>(取引データエクスポート)</strong></td>
+        <td>BottomSheet</td>
+        <td>All Users</td>
+        <td>Half-modal slide-up. Fiscal year selector (2026/2025), character encoding (UTF-8 / Shift_JIS), and 1-tap Journal Book CSV download.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Subscription Cancellation vs. Account Hard Delete Policy</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">User Action</th>
+        <th style="width: 35%;">System State</th>
+        <th style="width: 40%;">Retention Policy & UI Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Paid Plan Cancel<br>(Free Archive Mode)</strong></td>
+        <td><code>subscription_status = 'canceled'</code><br><code>access_mode = 'READ_ONLY_ARCHIVE'</code></td>
+        <td>New OCR scans and automated POS syncing are locked. Past 7-year records remain viewable & searchable in Screen D-10 with full ZIP download capability.</td>
+      </tr>
+      <tr>
+        <td><strong>Account Hard Deletion<br>(Full Purge Request)</strong></td>
+        <td><code>deleted_at = NOW()</code><br><code>purge_scheduled_at = NOW() + 30 Days</code></td>
+        <td>Mandates full ZIP backup download, enforces ERPA legal disclaimer confirmation checkbox, and holds data in soft-delete quarantine for 30 days before permanent AWS purge.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

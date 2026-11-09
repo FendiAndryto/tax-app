@@ -1,0 +1,19 @@
+{
+    "(and :count more error)": "（他 :count 件のエラー）",
+    "(and :count more errors)": "（他 :count 件のエラー）",
+    "The given data was invalid.": "入力内容に誤りがあります。",
+    "Unauthenticated.": "認証されていません。",
+    "This action is unauthorized.": "この操作は許可されていません。",
+    "Not Found": "ページが見つかりません。",
+    "Server Error": "サーバーエラーが発生しました。",
+    "Forbidden": "アクセスが拒否されました。",
+    "Service Unavailable": "サービスを利用できません。",
+    "Too Many Requests": "リクエストが多すぎます。しばらくしてから再試行してください。",
+    "Page Expired": "ページの有効期限が切れました。",
+    "Payment Required": "お支払いが必要です。",
+    "Unauthorized": "認証が必要です。",
+    "Bad Request": "リクエストが正しくありません。",
+    "Method Not Allowed": "このリクエスト方法は許可されていません。",
+    "Conflict": "データが競合しています。",
+    "Unprocessable Entity": "入力内容を処理できません。"
+}

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Schema Specification - Accounting & Tax AI Engine</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      background-color: #f8fafc;
+      padding: 30px 15px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      color: #0f172a;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 12px;
+      font-size: 24px;
+      margin-top: 0;
+    }
+    h2 {
+      color: #1d4ed8;
+      margin-top: 32px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      font-size: 18px;
+    }
+    h3 {
+      font-size: 15px;
+      color: #0f172a;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 24px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    code {
+      background-color: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      color: #b45309;
+      font-size: 12px;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 10px 0 20px 0;
+    }
+    .badge-pk {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: bold;
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    .badge-fk {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: bold;
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    .badge-idx {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: bold;
+      background-color: #ecfdf5;
+      color: #065f46;
+    }
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 14px 18px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+    }
+    .callout-warn {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 14px 18px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Database Schema Specification (MySQL 8 / Laravel 11)</h1>
+  <p><strong>System:</strong> AUBE TERRA / MYBRAIN Accounting & Tax Automation Engine</p>
+
+  <div class="callout">
+    <strong>Key Architectural Principles:</strong><br>
+    1. <strong>Double-Entry Journaling:</strong> Every transaction generates balanced Debit and Credit entries in <code>journal_entries</code>.<br>
+    2. <strong>ERPA Compliance (電子帳簿保存法):</strong> Receipts and Invoices are tracked in <code>erpa_documents</code> with SHA-256 hashes, immutable timestamps, and statutory composite index <code>(issue_date, amount, partner_name)</code> for 7-year audit inquiries.<br>
+    3. <strong>Article 204 Withholding Tax Support:</strong> Tracks daily allowances and tax deductions specifically for nightlife & freelance payouts.<br>
+    4. <strong>Subscription Lifecycle:</strong> User accounts support <code>READ_ONLY_ARCHIVE</code> mode upon cancellation, retaining 7-year ERPA data.
+  </div>
+
+  <h2>1. Entity Relationship Overview</h2>
+  <pre><code>[ users ]
+    │──< [ user_business_ratios ] (Apportionment presets: rent, utilities, wifi, car)
+    │──< [ auto_categorization_rules ] (Keywords -> category matching)
+    │──< [ transactions ]
+    │       │──< [ journal_entries ] (Double-entry: Debit & Credit lines)
+    │       └──1 [ erpa_documents ] (Receipt OCR images / Invoice PDFs with SHA256)
+    │──< [ pos_sync_logs ] (Nightwork store synchronization logs)
+    │──< [ invoices ] (Generated Qualified Invoices with T-number)
+    └──< [ tax_filing_summaries ] (Annual Form B / Blue Return snapshots)</code></pre>
+
+  <h2>2. Table Schema Definitions</h2>
+
+  <!-- TABLE: USERS -->
+  <h3>1. <code>users</code> (User Accounts & Tax Profiles)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Auto-incrementing primary key.</td>
+      </tr>
+      <tr>
+        <td><code>business_mode</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'MODE_FREELANCE'</code> or <code>'MODE_NIGHTWORK'</code>. Controls POS menu visibility.</td>
+      </tr>
+      <tr>
+        <td><code>email</code></td>
+        <td>VARCHAR(255)</td>
+        <td><span class="badge-idx">UNIQUE</span></td>
+        <td>User email address.</td>
+      </tr>
+      <tr>
+        <td><code>password</code></td>
+        <td>VARCHAR(255)</td>
+        <td></td>
+        <td>Bcrypt hashed password.</td>
+      </tr>
+      <tr>
+        <td><code>t_number</code></td>
+        <td>VARCHAR(14)</td>
+        <td>NULLABLE</td>
+        <td>National Tax Agency Qualified Invoice Issuer number (e.g., <code>T1234567890123</code>).</td>
+      </tr>
+      <tr>
+        <td><code>tax_rounding_rule</code></td>
+        <td>ENUM</td>
+        <td>DEFAULT 'FLOOR'</td>
+        <td><code>'FLOOR'</code> (切り捨て), <code>'ROUND'</code> (四捨五入), <code>'CEIL'</code> (切り上げ).</td>
+      </tr>
+      <tr>
+        <td><code>subscription_status</code></td>
+        <td>ENUM</td>
+        <td>DEFAULT 'TRIAL'</td>
+        <td><code>'TRIAL'</code>, <code>'ACTIVE'</code>, <code>'CANCELED'</code>, <code>'DELETED'</code>.</td>
+      </tr>
+      <tr>
+        <td><code>access_mode</code></td>
+        <td>ENUM</td>
+        <td>DEFAULT 'FULL'</td>
+        <td><code>'FULL'</code>, <code>'READ_ONLY_ARCHIVE'</code> (Active on cancellation; unlocks 7-year storage).</td>
+      </tr>
+      <tr>
+        <td><code>created_at / updated_at</code></td>
+        <td>TIMESTAMP</td>
+        <td></td>
+        <td>Laravel default timestamps.</td>
+      </tr>
+      <tr>
+        <td><code>deleted_at</code></td>
+        <td>TIMESTAMP</td>
+        <td>NULLABLE</td>
+        <td>Soft delete timestamp (30-day quarantine before purge).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: USER_BUSINESS_RATIOS -->
+  <h3>2. <code>user_business_ratios</code> (家事按分初期設定 / Drawer #1)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>user_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Foreign key referencing <code>users.id</code> (CASCADE).</td>
+      </tr>
+      <tr>
+        <td><code>expense_type</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'RENT'</code> (家賃), <code>'ELECTRICITY'</code> (電気代), <code>'INTERNET'</code> (通信費), <code>'VEHICLE'</code> (車両費).</td>
+      </tr>
+      <tr>
+        <td><code>monthly_estimated_cost</code></td>
+        <td>DECIMAL(10,2)</td>
+        <td>DEFAULT 0</td>
+        <td>Monthly base expenditure amount in JPY.</td>
+      </tr>
+      <tr>
+        <td><code>business_percentage</code></td>
+        <td>DECIMAL(5,2)</td>
+        <td></td>
+        <td>Business use ratio from 0.00% to 100.00% (slider value).</td>
+      </tr>
+      <tr>
+        <td><code>target_account_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Default expense account (e.g., 地代家賃, 水道光熱費, 通信費).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: ACCOUNT_CATEGORIES -->
+  <h3>3. <code>account_categories</code> (勘定科目マスタ)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>code</code></td>
+        <td>VARCHAR(10)</td>
+        <td><span class="badge-idx">UNIQUE</span></td>
+        <td>Account code (e.g., <code>111</code> Cash/Bank, <code>411</code> Sales, <code>521</code> Styling).</td>
+      </tr>
+      <tr>
+        <td><code>name_ja</code></td>
+        <td>VARCHAR(100)</td>
+        <td></td>
+        <td>Japanese account name (e.g., 会議費, 旅費交通費, 美容衛生費).</td>
+      </tr>
+      <tr>
+        <td><code>name_en</code></td>
+        <td>VARCHAR(100)</td>
+        <td></td>
+        <td>English account name.</td>
+      </tr>
+      <tr>
+        <td><code>type</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'ASSET'</code>, <code>'LIABILITY'</code>, <code>'EQUITY'</code>, <code>'REVENUE'</code>, <code>'EXPENSE'</code>.</td>
+      </tr>
+      <tr>
+        <td><code>is_nightwork_preset</code></td>
+        <td>BOOLEAN</td>
+        <td>DEFAULT FALSE</td>
+        <td>True if specifically tailored for nightlife casts (e.g., 衣装代, ヘアメイク代).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: TRANSACTIONS -->
+  <h3>4. <code>transactions</code> (Header Record for Bookkeeping & Swipes)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>user_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Foreign key referencing <code>users.id</code>.</td>
+      </tr>
+      <tr>
+        <td><code>transaction_date</code></td>
+        <td>DATE</td>
+        <td><span class="badge-idx">INDEX</span></td>
+        <td>Date of payment or revenue receipt.</td>
+      </tr>
+      <tr>
+        <td><code>amount</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td><span class="badge-idx">INDEX</span></td>
+        <td>Gross transaction amount in JPY.</td>
+      </tr>
+      <tr>
+        <td><code>partner_name</code></td>
+        <td>VARCHAR(255)</td>
+        <td><span class="badge-idx">INDEX</span></td>
+        <td>Store / Client name (e.g., "Starbucks Coffee", "GO Taxi App").</td>
+      </tr>
+      <tr>
+        <td><code>source_type</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'ocr'</code> (Camera), <code>'manual'</code> (User entry), <code>'pos'</code> (Store sync), <code>'bank'</code>, <code>'credit_card'</code>.</td>
+      </tr>
+      <tr>
+        <td><code>status</code></td>
+        <td>ENUM</td>
+        <td><span class="badge-idx">INDEX</span></td>
+        <td><code>'pending_review'</code> (Tab 2 swipe queue), <code>'confirmed'</code> (Balanced into ledger), <code>'excluded'</code> (Private).</td>
+      </tr>
+      <tr>
+        <td><code>confidence_score</code></td>
+        <td>DECIMAL(3,2)</td>
+        <td>NULLABLE</td>
+        <td>AI OCR/Category classification score (0.00 - 1.00). Used for 1-tap Batch Confirm.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: JOURNAL_ENTRIES -->
+  <h3>5. <code>journal_entries</code> (複式簿記仕訳データ / Double-Entry Ledger)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>transaction_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Foreign key referencing <code>transactions.id</code> (CASCADE).</td>
+      </tr>
+      <tr>
+        <td><code>account_category_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Referencing <code>account_categories.id</code>.</td>
+      </tr>
+      <tr>
+        <td><code>entry_type</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'DEBIT'</code> (借方) or <code>'CREDIT'</code> (貸方).</td>
+      </tr>
+      <tr>
+        <td><code>amount</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td></td>
+        <td>Debit/Credit breakdown amount. Sum(Debit) must strictly equal Sum(Credit).</td>
+      </tr>
+      <tr>
+        <td><code>tax_rate</code></td>
+        <td>DECIMAL(4,2)</td>
+        <td>DEFAULT 0.10</td>
+        <td>Consumption tax rate applied (<code>0.10</code> for 10%, <code>0.08</code> for 8%, <code>0.00</code> for exempt).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: ERPA_DOCUMENTS -->
+  <h3>6. <code>erpa_documents</code> (電子帳簿保存法 証憑ストレージ / Drawer #10)</h3>
+  <div class="callout-warn">
+    <strong>Statutory ERPA Compliance Index:</strong><br>
+    The composite index <code>idx_erpa_search (user_id, issue_date, amount, partner_name)</code> is legally mandatory to satisfy the National Tax Agency's 3-key range query audit rules.
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>user_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Foreign key referencing <code>users.id</code>.</td>
+      </tr>
+      <tr>
+        <td><code>transaction_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Nullable foreign key referencing <code>transactions.id</code>.</td>
+      </tr>
+      <tr>
+        <td><code>document_type</code></td>
+        <td>ENUM</td>
+        <td></td>
+        <td><code>'RECEIPT'</code> (Scanned slip) or <code>'INVOICE'</code> (Delivered qualified invoice).</td>
+      </tr>
+      <tr>
+        <td><code>issue_date</code></td>
+        <td>DATE</td>
+        <td><span class="badge-idx">COMPOSITE</span></td>
+        <td>Document date stated on the receipt/invoice.</td>
+      </tr>
+      <tr>
+        <td><code>amount</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td><span class="badge-idx">COMPOSITE</span></td>
+        <td>Total monetary value.</td>
+      </tr>
+      <tr>
+        <td><code>partner_name</code></td>
+        <td>VARCHAR(255)</td>
+        <td><span class="badge-idx">COMPOSITE</span></td>
+        <td>Issuer / vendor name.</td>
+      </tr>
+      <tr>
+        <td><code>storage_path</code></td>
+        <td>VARCHAR(512)</td>
+        <td></td>
+        <td>S3 bucket relative path (e.g., <code>erpa/2026/08/doc_9012.jpg</code>).</td>
+      </tr>
+      <tr>
+        <td><code>file_sha256</code></td>
+        <td>CHAR(64)</td>
+        <td></td>
+        <td>SHA-256 cryptographic hash generated at the exact upload second (anti-tamper verification).</td>
+      </tr>
+      <tr>
+        <td><code>statutory_retention_until</code></td>
+        <td>DATE</td>
+        <td></td>
+        <td>Calculated retention date (Fiscal year close + 7 statutory years).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE: POS_SYNC_LOGS -->
+  <h3>7. <code>pos_sync_logs</code> (店舗POS連携・給与台帳同期ログ / Drawer #6)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Column Name</th>
+        <th style="width: 15%;">Data Type</th>
+        <th style="width: 15%;">Key / Index</th>
+        <th style="width: 50%;">Description / Rules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-pk">PK</span></td>
+        <td>Primary key.</td>
+      </tr>
+      <tr>
+        <td><code>user_id</code></td>
+        <td>BIGINT UNSIGNED</td>
+        <td><span class="badge-fk">FK</span></td>
+        <td>Foreign key referencing <code>users.id</code>.</td>
+      </tr>
+      <tr>
+        <td><code>pos_transaction_id</code></td>
+        <td>VARCHAR(100)</td>
+        <td><span class="badge-idx">INDEX</span></td>
+        <td>External store POS reference (e.g., <code>POS-202610-8812</code>). Prevents duplicate syncs.</td>
+      </tr>
+      <tr>
+        <td><code>pay_period</code></td>
+        <td>VARCHAR(7)</td>
+        <td></td>
+        <td>Payroll year-month (e.g., <code>2026-09</code>).</td>
+      </tr>
+      <tr>
+        <td><code>attendance_days</code></td>
+        <td>SMALLINT UNSIGNED</td>
+        <td></td>
+        <td>Days worked in period. Used to calculate Article 204 base deduction (&yen;5,000/day).</td>
+      </tr>
+      <tr>
+        <td><code>gross_revenue</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td></td>
+        <td>Gross earnings before withholdings.</td>
+      </tr>
+      <tr>
+        <td><code>withholding_tax</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td></td>
+        <td>Tax withheld under Article 204: <code>(Gross - (5000 &times; Days)) &times; 10.21%</code>.</td>
+      </tr>
+      <tr>
+        <td><code>net_payment</code></td>
+        <td>DECIMAL(12,2)</td>
+        <td></td>
+        <td>Net payout transferred to cast.</td>
+      </tr>
+      <tr>
+        <td><code>deductions_json</code></td>
+        <td>JSON</td>
+        <td></td>
+        <td>Serialized breakdown array (Hair-make, locker, late penalties, advance loans).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Ready-to-Run Laravel Migration Blueprint (Code Snippet)</h2>
+  <pre><code>// database/migrations/2026_11_05_000001_create_accounting_core_tables.php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void {
+        Schema::create('erpa_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('transaction_id')->nullable()->constrained()->nullOnDelete();
+            $table->enum('document_type', ['RECEIPT', 'INVOICE']);
+            $table->date('issue_date');
+            $table->decimal('amount', 12, 2);
+            $table->string('partner_name', 255);
+            $table->string('storage_path', 512);
+            $table->char('file_sha256', 64);
+            $table->date('statutory_retention_until');
+            $table->timestamps();
+
+            // Legal 3-key composite search index for ERPA audits
+            $table->index(['user_id', 'issue_date', 'amount', 'partner_name'], 'idx_erpa_search');
+        });
+    }
+
+    public function down(): void {
+        Schema::dropIfExists('erpa_documents');
+    }
+};</code></pre>
+</div>
+</body>
+</html>
