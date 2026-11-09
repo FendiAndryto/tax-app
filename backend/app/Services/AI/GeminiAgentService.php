@@ -254,8 +254,7 @@ class GeminiAgentService
                 if (! empty($expense['breakdown_by_category'])) {
                     $msg .= "**カテゴリー別内訳:**\n";
                     foreach ($expense['breakdown_by_category'] as $item) {
-                        $catName = ! empty($item['category_ja']) ? $item['category_ja'] : $item['category'];
-                        $msg .= "• **{$catName}**: {$item['amount_formatted']} ({$item['percentage']})\n";
+                        $msg .= "• **{$item['category']}**: {$item['amount_formatted']} ({$item['percentage']})\n";
                     }
                 }
             }
@@ -291,8 +290,7 @@ class GeminiAgentService
                 if (! empty($income['breakdown_by_category'])) {
                     $msg .= "**カテゴリー別内訳:**\n";
                     foreach ($income['breakdown_by_category'] as $item) {
-                        $catName = ! empty($item['category_ja']) ? $item['category_ja'] : $item['category'];
-                        $msg .= "• **{$catName}**: {$item['amount_formatted']} ({$item['percentage']})\n";
+                        $msg .= "• **{$item['category']}**: {$item['amount_formatted']} ({$item['percentage']})\n";
                     }
                 }
             }
@@ -350,8 +348,7 @@ class GeminiAgentService
                 $msg = "会社の現在の現金・口座残高の概要は以下の通りです：\n\n";
                 $msg .= "💰 **流動資産合計:** {$balance['total_liquid_cash_formatted']}\n\n";
                 foreach ($balance['accounts'] as $acc) {
-                    $accName = ! empty($acc['name_ja']) ? $acc['name_ja'] : $acc['name'];
-                    $msg .= "• **{$accName}**: {$acc['current_balance_formatted']}\n";
+                    $msg .= "• **{$acc['name']}**: {$acc['current_balance_formatted']}\n";
                 }
             }
 

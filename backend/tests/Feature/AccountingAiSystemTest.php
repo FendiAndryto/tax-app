@@ -92,6 +92,18 @@ class AccountingAiSystemTest extends TestCase
         $response->assertStatus(401);
     }
 
+    public function test_unauthenticated_request_without_json_accept_header_returns_401_not_500(): void
+    {
+        // Regression: the app is API-only and has no `login` web route, so the
+        // framework's default guest redirect used to throw RouteNotFoundException
+        // (500) whenever the client did not send an `Accept: application/json` header.
+        auth()->forgetGuards();
+
+        $response = $this->call('GET', '/api/v1/accounts');
+
+        $response->assertStatus(401);
+    }
+
     public function test_admin_can_delete_transaction(): void
     {
         Sanctum::actingAs($this->adminUser);
